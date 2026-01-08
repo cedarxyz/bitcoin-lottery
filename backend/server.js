@@ -79,7 +79,7 @@ app.get('/', (req, res) => {
     endpoints: {
       '/': 'This info (free)',
       '/api/lottery/info': 'Get lottery info (free)',
-      '/api/lottery/buy': 'Buy lottery tickets (sBTC via x402)',
+      '/btc-lottery-buy': 'Buy lottery tickets (sBTC via x402)',
     },
     ticketPriceSats: Number(TICKET_PRICE_SATS),
     x402: true,
@@ -110,12 +110,12 @@ app.get('/api/lottery/info', async (req, res) => {
 
 // Buy tickets - x402 protected
 app.post(
-  '/api/lottery/buy',
+  '/btc-lottery-buy',
   x402PaymentRequired({
     amount: TICKET_PRICE_SATS,
     address: PAYMENT_ADDRESS,
     network: 'mainnet',
-    resource: '/api/lottery/buy',
+    resource: '/btc-lottery-buy',
     tokenType: 'sBTC',
     tokenContract: SBTC_CONTRACT,
   }),
@@ -163,7 +163,7 @@ app.post(
 
 // Dynamic pricing for multiple tickets
 app.get(
-  '/api/lottery/buy/price',
+  '/btc-lottery-buy/price',
   (req, res) => {
     const quantity = parseInt(req.query.quantity) || 1;
     const totalSats = Number(TICKET_PRICE_SATS) * Math.min(Math.max(quantity, 1), 10);

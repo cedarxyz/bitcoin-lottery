@@ -64,7 +64,7 @@ export function BuyTickets({
 
     setPurchaseResult(null);
 
-    const result = await makeX402Request('/api/lottery/buy', 'POST', {
+    const result = await makeX402Request('/btc-lottery-buy', 'POST', {
       recipient: address,
       quantity,
     });
