@@ -1,0 +1,26 @@
+{
+  "name": "bitcoin-lottery-backend",
+  "version": "1.0.0",
+  "description": "x402-powered Bitcoin Lottery API",
+  "type": "module",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "dependencies": {
+    "@scure/bip32": "^2.0.1",
+    "@scure/bip39": "^2.0.1",
+    "@stacks/common": "^7.3.1",
+    "@stacks/network": "^7.3.1",
+    "@stacks/transactions": "^7.3.1",
+    "@stacks/wallet-sdk": "^7.2.0",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.3",
+    "express": "^4.22.1",
+    "x402-stacks": "^1.1.1"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

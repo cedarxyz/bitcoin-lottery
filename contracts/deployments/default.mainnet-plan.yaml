@@ -1,0 +1,25 @@
+---
+id: 0
+name: Mainnet deployment
+network: mainnet
+stacks-node: "https://api.hiro.so"
+bitcoin-node: "http://blockstack:blockstacksystem@bitcoin.blockstack.com:8332"
+plan:
+  batches:
+    - id: 0
+      transactions:
+        - contract-publish:
+            contract-name: lottery
+            expected-sender: SP356QQ3WZFYACA35T0K9MW51ZRH04VDBAJK4NBEZ
+            cost: 117480
+            path: contracts/lottery.clar
+            anchor-block-only: true
+            clarity-version: 3
+        - contract-publish:
+            contract-name: lottery-x402
+            expected-sender: SP356QQ3WZFYACA35T0K9MW51ZRH04VDBAJK4NBEZ
+            cost: 118310
+            path: contracts/lottery-x402.clar
+            anchor-block-only: true
+            clarity-version: 3
+      epoch: "3.0"

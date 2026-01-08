@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: bitcoin-lottery-api
+    runtime: node
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: PORT
+        value: 10000
+      - key: PAYMENT_ADDRESS
+        sync: false
+      - key: OPERATOR_PRIVATE_KEY
+        sync: false
+      - key: CONTRACT_ADDRESS
+        sync: false
+      - key: CONTRACT_NAME
+        value: lottery-x402
