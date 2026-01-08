@@ -3,7 +3,7 @@ export const IS_MAINNET = true;
 export const DEMO_MODE = false;
 
 // API endpoints
-export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://lottery-api.example.com';
+export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://bitcoin-lottery.onrender.com';
 
 // Contract configuration
 export const CONTRACT_ADDRESS = import.meta.env.VITE_CONTRACT_ADDRESS || 'SP356QQ3WZFYACA35T0K9MW51ZRH04VDBAJK4NBEZ';
