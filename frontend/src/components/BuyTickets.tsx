@@ -58,7 +58,7 @@ export function BuyTickets({
       const data = result.data as { code?: string };
       setPurchaseResult({
         success: true,
-        message: 'Raffle entry confirmed!',
+        message: 'Bitcoin Face generated! Raffle ticket included.',
         code: data.code,
         txid: result.txid,
       });
@@ -75,7 +75,7 @@ export function BuyTickets({
 
   return (
     <div className="bg-gray-900/50 border border-gray-800 rounded-2xl p-6 max-w-md mx-auto">
-      <h3 className="text-xl font-bold text-white mb-4">Enter the Raffle</h3>
+      <h3 className="text-xl font-bold text-white mb-4">Generate Your Bitcoin Face</h3>
 
       {purchaseResult && (
         <div
@@ -90,7 +90,7 @@ export function BuyTickets({
           </p>
           {purchaseResult.code && (
             <div className="mt-2 p-2 bg-black/30 rounded font-mono text-sm">
-              <p className="text-gray-400 text-xs mb-1">Your Entry Code:</p>
+              <p className="text-gray-400 text-xs mb-1">Your Raffle Ticket:</p>
               <p className="text-[#f7931a] font-bold">{purchaseResult.code}</p>
             </div>
           )}
@@ -153,7 +153,7 @@ export function BuyTickets({
 
       <div className="mb-4 p-4 bg-gray-800/50 rounded-lg">
         <div className="flex justify-between text-sm text-gray-400 mb-2">
-          <span>Entry Price</span>
+          <span>Price</span>
           <div className="text-right">
             <span className="text-[#f7931a] font-semibold">{formatUSD(ticketPriceUSD)}</span>
             <span className="text-gray-500 text-xs ml-2">({formatSats(ticketPriceSats)})</span>
@@ -191,12 +191,12 @@ export function BuyTickets({
         {!isConnected
           ? 'Connect Wallet'
           : isPaying
-          ? 'Processing Payment...'
-          : `Enter Raffle (${formatUSD(ticketPriceUSD)})`}
+          ? 'Generating...'
+          : `Generate Face (${formatUSD(ticketPriceUSD)})`}
       </button>
 
       <p className="text-xs text-gray-500 text-center mt-3">
-        Pay with sBTC via x402 protocol. Each entry gives you one chance to win.
+        Pay with sBTC via x402. Each face includes a weekly BTC raffle ticket.
       </p>
     </div>
   );

@@ -12,8 +12,8 @@ export function Header() {
             <span className="text-xl font-bold text-black">B</span>
           </div>
           <div>
-            <h1 className="text-xl font-bold text-white">Bitcoin Faces Raffle</h1>
-            <p className="text-xs text-gray-400">Weekly BTC Drawing</p>
+            <h1 className="text-xl font-bold text-white">Bitcoin Faces</h1>
+            <p className="text-xs text-gray-400">Generate & Win BTC Weekly</p>
           </div>
         </div>
 

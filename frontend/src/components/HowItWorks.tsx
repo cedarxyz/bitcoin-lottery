@@ -2,15 +2,15 @@ export function HowItWorks() {
   const steps = [
     {
       number: '1',
-      title: 'Enter Raffle',
+      title: 'Generate Face',
       description:
-        'Connect your Stacks wallet and enter the raffle for $1 in sBTC. Each entry gives you a unique code and one chance to win.',
+        'Connect your Stacks wallet and generate a unique Bitcoin Face for $1 in sBTC. Each face is one-of-a-kind.',
     },
     {
       number: '2',
-      title: 'Get Your Code',
+      title: 'Get Raffle Ticket',
       description:
-        'After payment via x402, you receive a unique entry code. This code is your entry into the weekly raffle drawing.',
+        'Every Bitcoin Face you generate includes a weekly BTC raffle ticket. Your unique code is your entry.',
     },
     {
       number: '3',
@@ -50,13 +50,13 @@ export function HowItWorks() {
       <div className="mt-8 bg-gray-900/50 border border-gray-800 rounded-xl p-6">
         <h4 className="text-white font-semibold mb-4">Powered by x402</h4>
         <p className="text-gray-400 text-sm mb-4">
-          This raffle uses the x402 protocol for seamless sBTC micropayments. When you click "Enter Raffle":
+          Bitcoin Faces uses the x402 protocol for seamless sBTC micropayments. When you click "Generate Face":
         </p>
         <ol className="list-decimal list-inside text-gray-400 text-sm space-y-2">
           <li>Your wallet prompts you to sign an sBTC transfer</li>
-          <li>The payment is sent to the prize pool wallet</li>
-          <li>You receive a unique entry code as confirmation</li>
-          <li>Your entry is registered for the current weekly round</li>
+          <li>A unique Bitcoin Face is generated just for you</li>
+          <li>You receive a raffle ticket code as a bonus</li>
+          <li>Your ticket is entered into the current weekly drawing</li>
         </ol>
         <p className="text-gray-400 text-sm mt-4">
           All entries are verifiable on the Stacks blockchain. Entry prices dynamically adjust based on the current BTC/USD exchange rate to maintain a $1 price.
