@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useCallback, useEffect, type ReactNode } from 'react';
-import { AppConfig, UserSession, showConnect } from '@stacks/connect';
+import { AppConfig, UserSession, connect as stacksConnect } from '@stacks/connect';
 import { STACKS_MAINNET, type StacksNetwork } from '@stacks/network';
 
 const appConfig = new AppConfig(['store_write', 'publish_data']);
@@ -49,8 +49,20 @@ export function WalletProvider({ children }: { children: ReactNode }) {
       );
       const data = await response.json();
 
-      const sbtcKey = `${SBTC_CONTRACT.address}.${SBTC_CONTRACT.name}::sbtc`;
+      console.log('Balance API response for address:', addr);
+      console.log('Full balance data:', JSON.stringify(data, null, 2));
+      console.log('Fungible tokens:', data.fungible_tokens);
+
+      const sbtcKey = `${SBTC_CONTRACT.address}.${SBTC_CONTRACT.name}::sbtc-token`;
+      console.log('Looking for sBTC key:', sbtcKey);
+
+      // Also log all available token keys to find the correct one
+      if (data.fungible_tokens) {
+        console.log('Available token keys:', Object.keys(data.fungible_tokens));
+      }
+
       const balance = data.fungible_tokens?.[sbtcKey]?.balance || '0';
+      console.log('Found sBTC balance:', balance);
       setSbtcBalance(parseInt(balance, 10));
     } catch (error) {
       console.error('Failed to fetch sBTC balance:', error);
@@ -72,21 +84,34 @@ export function WalletProvider({ children }: { children: ReactNode }) {
     }
   }, [address, fetchSbtcBalance]);
 
-  const connect = useCallback(() => {
-    showConnect({
-      appDetails: {
-        name: 'Bitcoin Daily Lottery',
-        icon: window.location.origin + '/bitcoin.svg',
-      },
-      redirectTo: '/',
-      onFinish: () => {
-        setIsConnected(true);
-        const userData = userSession.loadUserData();
-        const newAddress = userData.profile.stxAddress.mainnet;
-        setAddress(newAddress);
-      },
-      userSession,
-    });
+  const connect = useCallback(async () => {
+    console.log('Connect button clicked');
+    console.log('Window origin:', window.location.origin);
+
+    try {
+      console.log('Calling stacksConnect...');
+      const response = await stacksConnect({
+        forceWalletSelect: true,
+      });
+
+      console.log('Connect response:', response);
+
+      if (response && response.addresses) {
+        // Find STX address from response
+        const stxAddress = response.addresses.find(
+          (addr: { symbol?: string; address: string }) =>
+            addr.symbol === 'STX' || addr.address.startsWith('SP') || addr.address.startsWith('SM')
+        );
+
+        if (stxAddress) {
+          console.log('STX address found:', stxAddress.address);
+          setIsConnected(true);
+          setAddress(stxAddress.address);
+        }
+      }
+    } catch (error) {
+      console.error('Failed to connect wallet:', error);
+    }
   }, []);
 
   const disconnect = useCallback(() => {

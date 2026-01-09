@@ -13,4 +13,16 @@ export default defineConfig({
       buffer: 'buffer/',
     },
   },
+  optimizeDeps: {
+    include: ['@stacks/connect', '@stacks/transactions', '@stacks/network'],
+    esbuildOptions: {
+      target: 'esnext',
+    },
+  },
+  build: {
+    target: 'esnext',
+    commonjsOptions: {
+      transformMixedEsModules: true,
+    },
+  },
 })

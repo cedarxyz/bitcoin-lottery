@@ -1,4 +1,4 @@
-import { formatSTX, formatAddress } from '../utils/format';
+import { formatSats, formatAddress } from '../utils/format';
 import type { RoundResult } from '../types/lottery';
 
 interface WinnersProps {
@@ -36,23 +36,25 @@ export function Winners({ winners }: WinnersProps) {
                   {formatAddress(result.winner || 'Unknown')}
                 </p>
                 <p className="text-sm text-gray-400">
-                  Ticket #{result.winningTicket} of {result.totalTickets}
+                  {result.winnerCode && (
+                    <span className="font-mono text-xs text-[#f7931a]">{result.winnerCode}</span>
+                  )}
+                  {result.totalEntries > 0 && (
+                    <span className="ml-2">({result.totalEntries} total entries)</span>
+                  )}
                 </p>
               </div>
             </div>
 
             <div className="text-right">
               <p className="text-[#f7931a] font-bold text-lg">
-                {formatSTX(result.prizeAmount)} STX
+                {formatSats(result.prizeAmountSats)}
               </p>
-              <a
-                href={`https://explorer.stacks.co/txid/${result.blockHashUsed}?chain=testnet`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-xs text-gray-400 hover:text-white transition"
-              >
-                View on Explorer
-              </a>
+              {result.drawnAt && (
+                <p className="text-xs text-gray-500">
+                  {new Date(result.drawnAt).toLocaleDateString()}
+                </p>
+              )}
             </div>
           </div>
         ))}

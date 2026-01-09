@@ -1,23 +1,37 @@
 export interface RoundResult {
+  round: number;
   winner: string | null;
-  winningTicket: number;
-  prizeAmount: number;
-  blockHashUsed: string;
-  totalTickets: number;
-  round: number;
+  winnerCode: string | null;
+  prizeAmountSats: number;
+  totalEntries: number;
+  drawnAt: string | null;
+  status: 'active' | 'completed';
 }
 
-export interface LotteryState {
+export interface RaffleState {
   currentRound: number;
-  ticketsSold: number;
-  prizePool: number;
+  totalEntries: number;
+  prizePoolSats: number;
+  prizePoolUSD: number;
   ticketPriceSats: number;
-  drawingBlock: number;
-  isActive: boolean;
-  isInCutoffPeriod: boolean;
+  ticketPriceUSD: number;
+  btcPriceUSD: number;
+  status: 'active' | 'drawing' | 'paused';
 }
 
-export interface UserTickets {
+export interface RaffleEntry {
+  code: string;
+  amountSats: number;
+  createdAt: string;
+}
+
+export interface UserEntries {
   round: number;
+  entries: RaffleEntry[];
   count: number;
 }
+
+// Legacy aliases for backward compatibility
+export type LotteryState = RaffleState;
+export type TicketEntry = RaffleEntry;
+export type UserTickets = UserEntries;

@@ -6,6 +6,20 @@ export function formatSTX(microSTX: number): string {
   });
 }
 
+export function formatSats(sats: number): string {
+  if (sats >= 100_000_000) {
+    return `${(sats / 100_000_000).toFixed(8)} BTC`;
+  }
+  return `${sats.toLocaleString()} sats`;
+}
+
+export function formatUSD(amount: number): string {
+  return `$${amount.toLocaleString(undefined, {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })}`;
+}
+
 export function formatAddress(address: string): string {
   if (address.length <= 12) return address;
   return `${address.slice(0, 6)}...${address.slice(-4)}`;

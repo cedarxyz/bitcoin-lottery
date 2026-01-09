@@ -2,27 +2,27 @@ export function HowItWorks() {
   const steps = [
     {
       number: '1',
-      title: 'Buy Tickets',
+      title: 'Enter Raffle',
       description:
-        'Connect your Stacks wallet and purchase tickets with STX. Each ticket gives you one chance to win.',
+        'Connect your Stacks wallet and enter the raffle for $1 in sBTC. Each entry gives you a unique code and one chance to win.',
     },
     {
       number: '2',
-      title: 'Wait for Drawing',
+      title: 'Get Your Code',
       description:
-        'Tickets sales close 1 hour before the drawing. The drawing happens automatically at the scheduled time.',
+        'After payment via x402, you receive a unique entry code. This code is your entry into the weekly raffle drawing.',
     },
     {
       number: '3',
-      title: 'Winner Selected',
+      title: 'Winner Drawn',
       description:
-        'A Bitcoin block hash determines the winner. This is provably fair and verifiable by anyone.',
+        'A random winner is selected weekly from all entries. The selection uses provably fair Bitcoin block hash randomness.',
     },
     {
       number: '4',
       title: 'Prize Paid',
       description:
-        'The winner automatically receives the entire prize pool directly to their wallet. No claims needed.',
+        'The winner receives 95% of the prize pool in sBTC. 5% goes to operating costs.',
     },
   ];
 
@@ -48,18 +48,18 @@ export function HowItWorks() {
       </div>
 
       <div className="mt-8 bg-gray-900/50 border border-gray-800 rounded-xl p-6">
-        <h4 className="text-white font-semibold mb-4">Provably Fair</h4>
+        <h4 className="text-white font-semibold mb-4">Powered by x402</h4>
         <p className="text-gray-400 text-sm mb-4">
-          The winning ticket is determined by the Bitcoin block hash using a simple,
-          verifiable formula:
+          This raffle uses the x402 protocol for seamless sBTC micropayments. When you click "Enter Raffle":
         </p>
-        <code className="block bg-black/50 rounded p-4 text-sm text-[#f7931a] font-mono">
-          winning_ticket = (block_hash % total_tickets) + 1
-        </code>
+        <ol className="list-decimal list-inside text-gray-400 text-sm space-y-2">
+          <li>Your wallet prompts you to sign an sBTC transfer</li>
+          <li>The payment is sent to the prize pool wallet</li>
+          <li>You receive a unique entry code as confirmation</li>
+          <li>Your entry is registered for the current weekly round</li>
+        </ol>
         <p className="text-gray-400 text-sm mt-4">
-          Since Bitcoin blocks are immutable and unpredictable before they're mined,
-          no one—including the operator—can manipulate the outcome. You can verify
-          any drawing yourself using the block hash and total tickets sold.
+          All entries are verifiable on the Stacks blockchain. Entry prices dynamically adjust based on the current BTC/USD exchange rate to maintain a $1 price.
         </p>
       </div>
     </section>

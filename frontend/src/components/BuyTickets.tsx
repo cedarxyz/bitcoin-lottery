@@ -1,56 +1,42 @@
 import { useState } from 'react';
 import { useWallet } from '../contexts/WalletContext';
 import { useX402Payment } from '../hooks/useX402Payment';
+import { formatSats, formatUSD } from '../utils/format';
+import type { RaffleEntry } from '../types/lottery';
 
 interface BuyTicketsProps {
   ticketPriceSats: number;
+  ticketPriceUSD: number;
+  btcPriceUSD: number;
   isActive: boolean;
-  isInCutoffPeriod: boolean;
-  userTickets: number;
+  userEntries: RaffleEntry[];
   onPurchase: () => void;
-}
-
-const TICKET_OPTIONS = [1, 5, 10];
-
-function formatSats(sats: number): string {
-  if (sats >= 100000000) {
-    return `${(sats / 100000000).toFixed(8)} BTC`;
-  }
-  return `${sats.toLocaleString()} sats`;
 }
 
 export function BuyTickets({
   ticketPriceSats,
+  ticketPriceUSD,
+  btcPriceUSD,
   isActive,
-  isInCutoffPeriod,
-  userTickets,
+  userEntries,
   onPurchase,
 }: BuyTicketsProps) {
   const { isConnected, connect, address, sbtcBalance, isLoadingBalance } = useWallet();
   const { makeX402Request, isPaying } = useX402Payment();
-  const [selectedQuantity, setSelectedQuantity] = useState(1);
-  const [customQuantity, setCustomQuantity] = useState('');
   const [purchaseResult, setPurchaseResult] = useState<{
     success: boolean;
     message: string;
+    code?: string;
     txid?: string;
   } | null>(null);
 
-  const quantity = customQuantity ? parseInt(customQuantity, 10) : selectedQuantity;
-  const totalCostSats = quantity * ticketPriceSats;
-  const canAfford = sbtcBalance !== null && sbtcBalance >= totalCostSats;
+  const canAfford = sbtcBalance !== null && sbtcBalance >= ticketPriceSats;
 
-  const handleBuyTickets = async () => {
+  const handleBuyTicket = async () => {
+    console.log('handleBuyTicket called, isConnected:', isConnected);
     if (!isConnected) {
+      console.log('Not connected, calling connect()');
       connect();
-      return;
-    }
-
-    if (quantity <= 0 || quantity > 10) {
-      setPurchaseResult({
-        success: false,
-        message: 'Please select between 1 and 10 tickets',
-      });
       return;
     }
 
@@ -64,15 +50,16 @@ export function BuyTickets({
 
     setPurchaseResult(null);
 
-    const result = await makeX402Request('/btc-lottery-buy', 'POST', {
+    const result = await makeX402Request('/btc-raffle-enter', 'POST', {
       recipient: address,
-      quantity,
     });
 
-    if (result.success) {
+    if (result.success && result.data) {
+      const data = result.data as { code?: string };
       setPurchaseResult({
         success: true,
-        message: `Successfully purchased ${quantity} ticket${quantity > 1 ? 's' : ''}!`,
+        message: 'Raffle entry confirmed!',
+        code: data.code,
         txid: result.txid,
       });
       onPurchase();
@@ -84,15 +71,15 @@ export function BuyTickets({
     }
   };
 
-  const isDisabled = !isActive || isInCutoffPeriod || isPaying || isLoadingBalance;
+  const isDisabled = !isActive || isPaying || isLoadingBalance;
 
   return (
     <div className="bg-gray-900/50 border border-gray-800 rounded-2xl p-6 max-w-md mx-auto">
-      <h3 className="text-xl font-bold text-white mb-4">Buy Tickets with sBTC</h3>
+      <h3 className="text-xl font-bold text-white mb-4">Enter the Raffle</h3>
 
       {purchaseResult && (
         <div
-          className={`mb-4 p-3 rounded-lg ${
+          className={`mb-4 p-4 rounded-lg ${
             purchaseResult.success
               ? 'bg-green-900/30 border border-green-800'
               : 'bg-red-900/30 border border-red-800'
@@ -101,25 +88,22 @@ export function BuyTickets({
           <p className={purchaseResult.success ? 'text-green-400' : 'text-red-400'}>
             {purchaseResult.message}
           </p>
+          {purchaseResult.code && (
+            <div className="mt-2 p-2 bg-black/30 rounded font-mono text-sm">
+              <p className="text-gray-400 text-xs mb-1">Your Entry Code:</p>
+              <p className="text-[#f7931a] font-bold">{purchaseResult.code}</p>
+            </div>
+          )}
           {purchaseResult.txid && (
             <a
               href={`https://explorer.stacks.co/txid/${purchaseResult.txid}?chain=mainnet`}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-xs text-blue-400 hover:underline mt-1 block"
+              className="text-xs text-blue-400 hover:underline mt-2 block"
             >
               View transaction
             </a>
           )}
-        </div>
-      )}
-
-      {userTickets > 0 && (
-        <div className="mb-4 p-3 bg-green-900/30 border border-green-800 rounded-lg">
-          <p className="text-green-400 text-sm">
-            You have <span className="font-bold">{userTickets}</span> ticket
-            {userTickets > 1 ? 's' : ''} for this round
-          </p>
         </div>
       )}
 
@@ -134,70 +118,50 @@ export function BuyTickets({
         </div>
       )}
 
-      {isInCutoffPeriod && (
-        <div className="mb-4 p-3 bg-yellow-900/30 border border-yellow-800 rounded-lg">
-          <p className="text-yellow-400 text-sm">
-            Ticket sales are closed. Drawing in progress...
-          </p>
+      {userEntries.length > 0 && (
+        <div className="mb-4">
+          <div className="p-3 bg-green-900/30 border border-green-800 rounded-lg mb-2">
+            <p className="text-green-400 text-sm">
+              You have <span className="font-bold">{userEntries.length}</span> entr
+              {userEntries.length > 1 ? 'ies' : 'y'} for this week
+            </p>
+          </div>
+          <details className="text-sm">
+            <summary className="text-gray-400 cursor-pointer hover:text-white transition">
+              View your entry codes
+            </summary>
+            <div className="mt-2 space-y-1 max-h-32 overflow-y-auto">
+              {userEntries.map((entry) => (
+                <div
+                  key={entry.code}
+                  className="p-2 bg-gray-800/50 rounded font-mono text-xs flex justify-between"
+                >
+                  <span className="text-[#f7931a]">{entry.code}</span>
+                  <span className="text-gray-500">{formatSats(entry.amountSats)}</span>
+                </div>
+              ))}
+            </div>
+          </details>
         </div>
       )}
 
       {!isActive && (
         <div className="mb-4 p-3 bg-red-900/30 border border-red-800 rounded-lg">
-          <p className="text-red-400 text-sm">Lottery is currently paused</p>
+          <p className="text-red-400 text-sm">Raffle is currently paused</p>
         </div>
       )}
 
-      <div className="mb-4">
-        <label className="block text-sm text-gray-400 mb-2">Select Quantity</label>
-        <div className="grid grid-cols-3 gap-2">
-          {TICKET_OPTIONS.map((opt) => (
-            <button
-              key={opt}
-              onClick={() => {
-                setSelectedQuantity(opt);
-                setCustomQuantity('');
-              }}
-              disabled={isDisabled}
-              className={`py-2 rounded-lg font-semibold transition ${
-                selectedQuantity === opt && !customQuantity
-                  ? 'bg-[#f7931a] text-black'
-                  : 'bg-gray-800 text-white hover:bg-gray-700'
-              } ${isDisabled ? 'opacity-50 cursor-not-allowed' : ''}`}
-            >
-              {opt}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      <div className="mb-6">
-        <label className="block text-sm text-gray-400 mb-2">Or enter custom (1-10)</label>
-        <input
-          type="number"
-          min="1"
-          max="10"
-          value={customQuantity}
-          onChange={(e) => setCustomQuantity(e.target.value)}
-          disabled={isDisabled}
-          placeholder="Custom amount"
-          className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-[#f7931a] disabled:opacity-50"
-        />
-      </div>
-
       <div className="mb-4 p-4 bg-gray-800/50 rounded-lg">
-        <div className="flex justify-between text-sm text-gray-400 mb-1">
-          <span>Price per ticket</span>
-          <span className="text-[#f7931a]">{formatSats(ticketPriceSats)}</span>
+        <div className="flex justify-between text-sm text-gray-400 mb-2">
+          <span>Entry Price</span>
+          <div className="text-right">
+            <span className="text-[#f7931a] font-semibold">{formatUSD(ticketPriceUSD)}</span>
+            <span className="text-gray-500 text-xs ml-2">({formatSats(ticketPriceSats)})</span>
+          </div>
         </div>
-        <div className="flex justify-between text-sm text-gray-400 mb-1">
-          <span>Quantity</span>
-          <span>{quantity}</span>
-        </div>
-        <div className="border-t border-gray-700 my-2" />
-        <div className="flex justify-between text-lg font-bold text-white">
-          <span>Total</span>
-          <span className="text-[#f7931a]">{formatSats(totalCostSats)}</span>
+        <div className="flex justify-between text-xs text-gray-500">
+          <span>BTC Price</span>
+          <span>{formatUSD(btcPriceUSD)}</span>
         </div>
       </div>
 
@@ -216,10 +180,10 @@ export function BuyTickets({
       )}
 
       <button
-        onClick={handleBuyTickets}
-        disabled={isDisabled || quantity <= 0 || (isConnected && !canAfford)}
+        onClick={handleBuyTicket}
+        disabled={isDisabled || (isConnected && !canAfford)}
         className={`w-full py-3 rounded-lg font-bold text-lg transition ${
-          isDisabled || quantity <= 0 || (isConnected && !canAfford)
+          isDisabled || (isConnected && !canAfford)
             ? 'bg-gray-700 text-gray-500 cursor-not-allowed'
             : 'bg-[#f7931a] hover:bg-[#e88a15] text-black'
         }`}
@@ -228,11 +192,11 @@ export function BuyTickets({
           ? 'Connect Wallet'
           : isPaying
           ? 'Processing Payment...'
-          : `Buy ${quantity} Ticket${quantity > 1 ? 's' : ''} (${formatSats(totalCostSats)})`}
+          : `Enter Raffle (${formatUSD(ticketPriceUSD)})`}
       </button>
 
       <p className="text-xs text-gray-500 text-center mt-3">
-        Pay with sBTC via x402 protocol
+        Pay with sBTC via x402 protocol. Each entry gives you one chance to win.
       </p>
     </div>
   );

@@ -7,7 +7,7 @@ export function Footer() {
             <div className="w-8 h-8 rounded-full bg-[#f7931a] flex items-center justify-center">
               <span className="text-sm font-bold text-black">B</span>
             </div>
-            <span className="text-gray-400 text-sm">Bitcoin Daily Lottery</span>
+            <span className="text-gray-400 text-sm">Bitcoin Faces Raffle</span>
           </div>
 
           <div className="flex items-center gap-6 text-sm text-gray-400">
@@ -36,7 +36,7 @@ export function Footer() {
           </div>
 
           <p className="text-xs text-gray-500">
-            Please gamble responsibly. 18+ only.
+            NO PURCHASE NECESSARY TO ENTER OR WIN. 18+ only.
           </p>
         </div>
       </div>

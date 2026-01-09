@@ -2,15 +2,7 @@ import { useState } from 'react';
 import { openContractCall } from '@stacks/connect';
 import { Pc, PostConditionMode, uintCV, principalCV } from '@stacks/transactions';
 import { useWallet } from '../contexts/WalletContext';
-
-// sBTC contract on mainnet
-const SBTC_CONTRACT = {
-  address: 'SM3VDXK3WZZSA84XXFKAFAF15NNZX32CTSG82JFQ4',
-  name: 'sbtc-token',
-};
-
-// API base URL
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://lottery-api.example.com';
+import { API_BASE_URL, SBTC_CONTRACT } from '../utils/config';
 
 interface X402PaymentRequired {
   maxAmountRequired: string;

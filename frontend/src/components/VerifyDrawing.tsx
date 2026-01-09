@@ -1,17 +1,20 @@
 import { useState } from 'react';
-import { useWallet } from '../contexts/WalletContext';
-import { getRoundResults } from '../utils/contract';
+import { API_BASE_URL } from '../utils/config';
+import { formatSats, formatAddress } from '../utils/format';
+
+interface RoundInfo {
+  round_number: number;
+  status: string;
+  winner_code: string | null;
+  winner_address: string | null;
+  prize_amount_sats: number | null;
+  total_entries: number | null;
+  drawn_at: string | null;
+}
 
 export function VerifyDrawing() {
-  const { network } = useWallet();
   const [roundNumber, setRoundNumber] = useState('');
-  const [verificationResult, setVerificationResult] = useState<{
-    blockHash: string;
-    totalTickets: number;
-    winningTicket: number;
-    calculatedTicket: number;
-    isValid: boolean;
-  } | null>(null);
+  const [roundInfo, setRoundInfo] = useState<RoundInfo | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -24,35 +27,28 @@ export function VerifyDrawing() {
 
     setLoading(true);
     setError(null);
-    setVerificationResult(null);
+    setRoundInfo(null);
 
     try {
-      const result = await getRoundResults(network, round);
+      const response = await fetch(`${API_BASE_URL}/admin/rounds`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch rounds');
+      }
 
-      if (!result || !result.winner) {
-        setError('Round not found or no winner for this round');
+      const data = await response.json();
+      const foundRound = data.rounds.find(
+        (r: RoundInfo) => r.round_number === round
+      );
+
+      if (!foundRound) {
+        setError('Round not found');
         return;
       }
 
-      // Calculate the winning ticket from block hash
-      // Convert first 16 bytes of hex hash to BigInt
-      const hashHex = result.blockHashUsed.startsWith('0x')
-        ? result.blockHashUsed.slice(2, 34)
-        : result.blockHashUsed.slice(0, 32);
-      const hashValue = BigInt('0x' + hashHex);
-      const calculatedTicket =
-        Number(hashValue % BigInt(result.totalTickets)) + 1;
-
-      setVerificationResult({
-        blockHash: result.blockHashUsed,
-        totalTickets: result.totalTickets,
-        winningTicket: result.winningTicket,
-        calculatedTicket,
-        isValid: calculatedTicket === result.winningTicket,
-      });
+      setRoundInfo(foundRound);
     } catch (err) {
-      console.error('Verification failed:', err);
-      setError('Failed to verify round. Please try again.');
+      console.error('Lookup failed:', err);
+      setError('Failed to fetch round information. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -60,12 +56,12 @@ export function VerifyDrawing() {
 
   return (
     <section id="verify" className="py-12">
-      <h3 className="text-2xl font-bold text-white mb-6">Verify a Drawing</h3>
+      <h3 className="text-2xl font-bold text-white mb-6">Look Up a Round</h3>
 
       <div className="bg-gray-900/50 border border-gray-800 rounded-xl p-6">
         <p className="text-gray-400 text-sm mb-4">
-          Enter a round number to verify that the drawing was fair. We'll show you
-          the block hash used and recalculate the winning ticket.
+          Enter a round number to see the details including the winner,
+          prize amount, and number of entries.
         </p>
 
         <div className="flex gap-3 mb-6">
@@ -82,7 +78,7 @@ export function VerifyDrawing() {
             disabled={loading}
             className="px-6 py-2 bg-[#f7931a] hover:bg-[#e88a15] text-black font-semibold rounded-lg transition disabled:opacity-50"
           >
-            {loading ? 'Verifying...' : 'Verify'}
+            {loading ? 'Looking up...' : 'Look Up'}
           </button>
         </div>
 
@@ -92,69 +88,70 @@ export function VerifyDrawing() {
           </div>
         )}
 
-        {verificationResult && (
+        {roundInfo && (
           <div className="space-y-4">
-            <div className="p-4 bg-gray-800/50 rounded-lg">
-              <p className="text-sm text-gray-400 mb-1">Block Hash Used</p>
-              <p className="font-mono text-sm text-white break-all">
-                {verificationResult.blockHash}
-              </p>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="p-4 bg-gray-800/50 rounded-lg">
-                <p className="text-sm text-gray-400 mb-1">Total Tickets</p>
-                <p className="text-xl font-bold text-white">
-                  {verificationResult.totalTickets}
-                </p>
-              </div>
-              <div className="p-4 bg-gray-800/50 rounded-lg">
-                <p className="text-sm text-gray-400 mb-1">Recorded Winner</p>
-                <p className="text-xl font-bold text-white">
-                  #{verificationResult.winningTicket}
-                </p>
-              </div>
-            </div>
-
-            <div className="p-4 bg-gray-800/50 rounded-lg">
-              <p className="text-sm text-gray-400 mb-1">Our Calculation</p>
-              <p className="font-mono text-sm text-gray-300 mb-2">
-                ({verificationResult.blockHash.slice(0, 16)}... % {verificationResult.totalTickets}) + 1
-                = <span className="text-white font-bold">#{verificationResult.calculatedTicket}</span>
-              </p>
-            </div>
-
-            <div
-              className={`p-4 rounded-lg flex items-center gap-3 ${
-                verificationResult.isValid
-                  ? 'bg-green-900/30 border border-green-800'
-                  : 'bg-red-900/30 border border-red-800'
-              }`}
-            >
-              <div
-                className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                  verificationResult.isValid ? 'bg-green-500' : 'bg-red-500'
+            <div className="p-4 bg-gray-800/50 rounded-lg flex items-center justify-between">
+              <span className="text-gray-400">Round Status</span>
+              <span
+                className={`font-semibold ${
+                  roundInfo.status === 'completed'
+                    ? 'text-green-400'
+                    : 'text-yellow-400'
                 }`}
               >
-                {verificationResult.isValid ? '✓' : '✗'}
-              </div>
-              <div>
-                <p
-                  className={`font-semibold ${
-                    verificationResult.isValid ? 'text-green-400' : 'text-red-400'
-                  }`}
-                >
-                  {verificationResult.isValid
-                    ? 'Drawing Verified!'
-                    : 'Verification Failed'}
-                </p>
-                <p className="text-sm text-gray-400">
-                  {verificationResult.isValid
-                    ? 'The winning ticket matches our calculation.'
-                    : 'The winning ticket does not match. This should not happen.'}
-                </p>
-              </div>
+                {roundInfo.status.charAt(0).toUpperCase() + roundInfo.status.slice(1)}
+              </span>
             </div>
+
+            {roundInfo.status === 'completed' && roundInfo.winner_address && (
+              <>
+                <div className="p-4 bg-gray-800/50 rounded-lg">
+                  <p className="text-sm text-gray-400 mb-1">Winner</p>
+                  <p className="text-white font-semibold">
+                    {formatAddress(roundInfo.winner_address)}
+                  </p>
+                  {roundInfo.winner_code && (
+                    <p className="text-[#f7931a] font-mono text-sm mt-1">
+                      {roundInfo.winner_code}
+                    </p>
+                  )}
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="p-4 bg-gray-800/50 rounded-lg">
+                    <p className="text-sm text-gray-400 mb-1">Prize Won</p>
+                    <p className="text-xl font-bold text-[#f7931a]">
+                      {roundInfo.prize_amount_sats
+                        ? formatSats(roundInfo.prize_amount_sats)
+                        : '-'}
+                    </p>
+                  </div>
+                  <div className="p-4 bg-gray-800/50 rounded-lg">
+                    <p className="text-sm text-gray-400 mb-1">Total Entries</p>
+                    <p className="text-xl font-bold text-white">
+                      {roundInfo.total_entries || '-'}
+                    </p>
+                  </div>
+                </div>
+
+                {roundInfo.drawn_at && (
+                  <div className="p-4 bg-gray-800/50 rounded-lg">
+                    <p className="text-sm text-gray-400 mb-1">Drawn At</p>
+                    <p className="text-white">
+                      {new Date(roundInfo.drawn_at).toLocaleString()}
+                    </p>
+                  </div>
+                )}
+              </>
+            )}
+
+            {roundInfo.status === 'active' && (
+              <div className="p-4 bg-yellow-900/30 border border-yellow-800 rounded-lg">
+                <p className="text-yellow-400 text-sm">
+                  This round is currently active. Check back after the drawing!
+                </p>
+              </div>
+            )}
           </div>
         )}
       </div>

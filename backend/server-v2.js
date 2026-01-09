@@ -165,16 +165,16 @@ app.get('/', async (req, res) => {
     const totalEntries = parseInt(entriesResult.rows[0]?.count || 0);
 
     res.json({
-      name: 'Bitcoin Daily Lottery',
-      version: '2.0.0',
+      name: 'Bitcoin Faces Raffle',
+      version: '2.1.0',
       endpoints: {
         '/': 'This info (free)',
-        '/btc-lottery-buy': 'Buy 1 lottery ticket for $1 sBTC (x402)',
-        '/lottery/status': 'Current lottery status (free)',
-        '/lottery/entries/:address': 'Get entries for address (free)',
+        '/btc-raffle-enter': 'Enter raffle for $1 sBTC (x402)',
+        '/raffle/status': 'Current raffle status (free)',
+        '/raffle/entries/:address': 'Get entries for address (free)',
       },
-      ticketPriceUSD: TICKET_PRICE_USD,
-      ticketPriceSats: sats,
+      entryPriceUSD: TICKET_PRICE_USD,
+      entryPriceSats: sats,
       btcPriceUSD: btcPrice,
       currentRound,
       totalEntries,
@@ -191,8 +191,8 @@ app.get('/', async (req, res) => {
   }
 });
 
-// Get current lottery status
-app.get('/lottery/status', async (req, res) => {
+// Get current raffle status
+app.get('/raffle/status', async (req, res) => {
   try {
     const { sats, btcPrice } = await usdToSats(TICKET_PRICE_USD);
     const currentRound = await getCurrentRound();
@@ -219,12 +219,15 @@ app.get('/lottery/status', async (req, res) => {
     });
   } catch (error) {
     console.error('Error fetching status:', error);
-    res.status(500).json({ error: 'Failed to fetch lottery status' });
+    res.status(500).json({ error: 'Failed to fetch raffle status' });
   }
 });
 
+// Alias for backward compatibility
+app.get('/lottery/status', (req, res) => res.redirect(307, '/raffle/status'));
+
 // Get entries for a specific address
-app.get('/lottery/entries/:address', async (req, res) => {
+app.get('/raffle/entries/:address', async (req, res) => {
   try {
     const { address } = req.params;
     const currentRound = await getCurrentRound();
@@ -249,8 +252,11 @@ app.get('/lottery/entries/:address', async (req, res) => {
   }
 });
 
-// Buy ticket - x402 protected (dynamic pricing)
-app.post('/btc-lottery-buy', async (req, res, next) => {
+// Alias for backward compatibility
+app.get('/lottery/entries/:address', (req, res) => res.redirect(307, `/raffle/entries/${req.params.address}`));
+
+// Enter raffle - x402 protected (dynamic pricing)
+app.post('/btc-raffle-enter', async (req, res, next) => {
   try {
     // Calculate current price in sats
     const { sats, btcPrice } = await usdToSats(TICKET_PRICE_USD);
@@ -261,7 +267,7 @@ app.post('/btc-lottery-buy', async (req, res, next) => {
       amount: BigInt(sats),
       address: PRIZE_POOL_WALLET,
       network: 'mainnet',
-      resource: '/btc-lottery-buy',
+      resource: '/btc-raffle-enter',
       tokenType: 'sBTC',
       tokenContract: SBTC_CONTRACT,
     });
@@ -294,12 +300,12 @@ app.post('/btc-lottery-buy', async (req, res, next) => {
       [code, walletAddress, sats, btcPrice, currentRound]
     );
 
-    console.log(`Ticket purchased: ${code} by ${walletAddress} for ${sats} sats`);
+    console.log(`Raffle entry: ${code} by ${walletAddress} for ${sats} sats`);
 
     res.json({
       success: true,
       code,
-      message: 'Lottery ticket purchased successfully!',
+      message: 'Raffle entry confirmed!',
       walletAddress,
       amountPaidSats: sats,
       amountPaidUSD: TICKET_PRICE_USD,
@@ -308,13 +314,16 @@ app.post('/btc-lottery-buy', async (req, res, next) => {
       prizePoolContribution: Math.floor(sats * 0.95),
     });
   } catch (error) {
-    console.error('Error purchasing ticket:', error);
+    console.error('Error processing raffle entry:', error);
     res.status(500).json({
-      error: 'Failed to purchase ticket',
+      error: 'Failed to enter raffle',
       message: error.message,
     });
   }
 });
+
+// Alias for backward compatibility
+app.post('/btc-lottery-buy', (req, res) => res.redirect(307, '/btc-raffle-enter'));
 
 // Admin: Draw winner (protected by secret)
 app.post('/admin/draw', async (req, res) => {
@@ -447,12 +456,12 @@ async function start() {
   app.listen(PORT, () => {
     console.log(`
 ╔═══════════════════════════════════════════════════════════════╗
-║           Bitcoin Daily Lottery - x402 API v2.0               ║
+║           Bitcoin Faces Raffle - x402 API v2.1                ║
 ╠═══════════════════════════════════════════════════════════════╣
 ║  Server:      http://localhost:${PORT}                           ║
 ║  Prize Pool:  ${PRIZE_POOL_WALLET}   ║
 ║  Profit:      ${PROFIT_WALLET}   ║
-║  Price:       $${TICKET_PRICE_USD} USD per ticket (dynamic sats)          ║
+║  Entry:       $${TICKET_PRICE_USD} USD per entry (dynamic sats)           ║
 ║  Split:       95% prize pool / 5% profit                      ║
 ║  Token:       sBTC (mainnet)                                  ║
 ║  Database:    Neon PostgreSQL                                 ║
